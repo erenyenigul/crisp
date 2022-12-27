@@ -3,12 +3,15 @@
 #include <string.h>
 #include <stdbool.h>
 #include <ctype.h>
-#include "scheme.h"
+#include "crisp.h"
+#include "scanner.h"
+#include "parser.h"
 
-char *program = "(let f (function x (print (+ (+ \"hello, \" x) \"!\"))) (f \"eren\"))";
+//char *program = "(let f (function x (print (+ (+ \"hello, \" x) \"!\"))) (f \"eren\"))";
 
-bool is_string_char(char c){
-    return isascii(c) && c != '"';
+void printe(char *msg)
+{
+    printf("\033[1m\033[31m[Crisp.Exception]\033[0m %s\n", msg);
 }
 
 expression_value eval(expression *exp, enviroment env)
@@ -157,213 +160,35 @@ expression_value eval(expression *exp, enviroment env)
 
 int main()
 {
-    int n = strlen(program);
+    printf("[Crisp Interpeter]\n");
+    printf("*| by erenyenigul\n");
+    printf("*| v.1.0.0\n");
 
-    token *tokens[100];
-    int last_token_index = 0;
+    char program_buffer[1000];
+    program_buffer[0] = '\0';
 
-    for (int i = 0; i < n; i++)
-    {
-        token *curr;
+    printf(">  ");
+    fgets(program_buffer, sizeof(program_buffer), stdin);
 
-        if (program[i] == '(')
-            curr = create_token(T_OPEN_PARAN);
-        else if (program[i] == ')')
-            curr = create_token(T_CLOSE_PARAN);
-        else if (program[i] == '+')
-            curr = create_token(T_PLUS);
-        else if (program[i] == '-')
-            curr = create_token(T_MINUS);
-        else if (program[i] == '*')
-            curr = create_token(T_STAR);
-        else if (program[i] == '/')
-            curr = create_token(T_SLASH);
-        else if (program[i] == ' ')
-            continue;
-        else if (isdigit(program[i]))
-        {
-            int start = i;
-            int end = i;
-            while (isdigit(program[++i]))
-                end = i;
+    while(program_buffer[0] != '\0'){
+        int n = strlen(program_buffer);
 
-            i--;
-            curr = create_token(T_NUMERIC);
-            curr->value.i = str2int(&program[start], end - start + 1);
-        }
-        else if (isalpha(program[i]))
-        {
-            int start = i;
-            int end = i;
-            while (isalpha(program[++i])){
-                end = i;
-            }
-            i--;
-            char word[end - start + 2];
+        tokens* program_tokens = scan(program_buffer, n);
+        expression* program = parse(program_tokens);
 
-            strncpy(word, &program[start], end - start + 1);
-            word[end - start + 1] = '\0';
-            if (strcmp(word, "print") == 0)
-            {
-                curr = create_token(T_PRINT);
-            }
-            else if (strcmp(word, "let") == 0)
-            {
-                curr = create_token(T_LET);
-            }
-            else if (strcmp(word, "function") == 0)
-            {
-                curr = create_token(T_FUNCTION);
-            }
-            else
-            {
-                curr = create_token(T_IDENTIFIER);
-                char *str = malloc(sizeof(char) * end - start);
-                strncpy(str, &program[start], end - start + 1);
-                curr->value.str = str;
-            }
-        }
-        else if (program[i] == '"')
-        {
-            i++;
-            int start = i;
-            int end = i;
-            while (is_string_char(program[i])){
-                end = i;
-                i++;
-            }
-            if(program[i] != '"'){
-                printe("Strings must end with `\"`!");
-                continue;
-            }
-            
-            char word[end - start + 2];
+        enviroment env;
+        env.i = 0;
+        expression_value value = eval(program, env);
 
-            strncpy(word, &program[start], end - start + 1);
-            word[end - start + 1] = '\0';
-            
-            curr = create_token(T_STRING);
-            char *str = malloc(sizeof(char) * end - start);
-            strncpy(str, &program[start], end - start + 1);
-            curr->value.str = str;
-        }
+        printf(">> ");
+        if (value.type == V_INT)
+            printf("%d", value.val.i);
+        else if (value.type == V_STRING)
+            printf("%s", value.val.str);
+        else if (value.type == V_NULL)
+            printf("null");
 
-        tokens[last_token_index++] = curr;
-    }
-
-    stack s;
-    expression *program;
-
-    s.i = 0;
-
-    for (int i = 0; i < last_token_index; i++)
-    {
-        token *t = tokens[i];
-
-        if (t->type == T_OPEN_PARAN)
-        {
-            token *t = tokens[++i];
-            enum expression_type type;
-            int num;
-            if (t->type == T_PLUS)
-            {
-                type = E_ADDITION;
-                num = 2;
-            }
-            else if (t->type == T_MINUS)
-            {
-                type = E_SUBTRACTION;
-                num = 2;
-            }
-            else if (t->type == T_STAR)
-            {
-                type = E_MULTIPLICATION;
-                num = 2;
-            }
-            else if (t->type == T_SLASH)
-            {
-                type = E_DIVISON;
-                num = 2;
-            }
-            else if (t->type == T_PRINT)
-            {
-                type = E_PRINT;
-                num = 1;
-            }
-            else if (t->type == T_LET)
-            {
-                type = E_LET;
-                num = 3;
-            }
-            else if (t->type == T_FUNCTION)
-            {
-                type = E_FUNCTION;
-                num = 2;
-            }
-            else
-            {
-                type = E_CALL;
-                num = 2;
-
-                i--;
-            }
-
-            expression *exp = create_expression(type, num);
-            push(&s, exp);
-        }
-        else if (t->type == T_NUMERIC || t->type == T_STRING)
-        {
-            expression *prev_exp = top(&s);
-            expression *const_exp = create_expression(E_CONST, 0);
-
-            switch (t->type)
-            {
-            case T_NUMERIC:
-                const_exp->value.type = V_INT;
-                const_exp->value.val.i = t->value.i;
-                break;
-            case T_STRING:
-                const_exp->value.type = V_STRING;
-                const_exp->value.val.str = t->value.str;
-                break;
-            }
-
-            prev_exp->exps[prev_exp->filled++] = const_exp;
-        }
-        else if (t->type == T_IDENTIFIER)
-        {
-            expression *prev_exp = top(&s);
-            expression *const_exp = create_expression(E_IDENTIFIER, 0);
-
-            const_exp->value.type = V_IDENTIFIER;
-            const_exp->value.val.str = t->value.str;
-
-            prev_exp->exps[prev_exp->filled++] = const_exp;
-        }
-        else if (t->type == T_CLOSE_PARAN)
-        {
-            expression *prev_exp = pop(&s);
-
-            if (s.i == 0)
-            {
-                program = prev_exp;
-                break;
-            }
-            expression *next_prev = top(&s);
-
-            next_prev->exps[next_prev->filled++] = prev_exp;
-        }
-    }
-
-    enviroment env;
-    env.i = 0;
-    expression_value value = eval(program, env);
-
-    printf("result of the program is :");
-    if (value.type == V_INT)
-        printf("%d", value.val.i);
-    else if (value.type == V_STRING)
-        printf("%s", value.val.str);
-    else if (value.type == V_NULL)
-        printf("null");
+        printf("\n>  ");
+        fgets(program_buffer, sizeof(program_buffer), stdin);
+    }   
 }
