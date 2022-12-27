@@ -11,7 +11,8 @@ typedef enum
     V_STRING,
     V_NULL,
     V_IDENTIFIER,
-    V_FUNCTION
+    V_FUNCTION,
+    V_FILE
 } expression_value_type;
 
 enum expression_type
@@ -26,7 +27,8 @@ enum expression_type
     E_LET,
     E_IDENTIFIER,
     E_FUNCTION,
-    E_CALL
+    E_CALL,
+    E_OPEN
 };
 
 typedef union

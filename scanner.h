@@ -17,7 +17,8 @@ typedef enum
     T_IDENTIFIER,
     T_QUOTATION,
     T_LET,
-    T_FUNCTION
+    T_FUNCTION,
+    T_OPEN
 } token_type;
 
 typedef union

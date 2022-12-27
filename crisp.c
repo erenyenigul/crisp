@@ -132,15 +132,8 @@ expression_value eval(expression *exp, enviroment env)
     }
     case E_CALL:
     {
-        function *f;
-        for (int i = env.i - 1; i >= 0; i--)
-        {
-            if (strcmp(exp->exps[0]->value.val.str, env.ids[i]) == 0)
-            {
-                f = env.vals[i].val.func;
-                break;
-            }
-        }
+        function *f = eval(exp->exps[0], env).val.func;
+      
         enviroment f_env = env;
         f_env.ids[f_env.i] = f->id;
         f_env.vals[f_env.i] = eval(exp->exps[1], env);
@@ -180,15 +173,12 @@ int main()
         env.i = 0;
         expression_value value = eval(program, env);
 
-        printf(">> ");
         if (value.type == V_INT)
-            printf("%d", value.val.i);
+            printf("%d\n", value.val.i);
         else if (value.type == V_STRING)
-            printf("%s", value.val.str);
-        else if (value.type == V_NULL)
-            printf("null");
+            printf("%s\n", value.val.str);
 
-        printf("\n>  ");
+        printf(">  ");
         fgets(program_buffer, sizeof(program_buffer), stdin);
     }   
 }
