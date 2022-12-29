@@ -87,6 +87,40 @@ tokens* scan(char* program, int n){
             {
                 curr = create_token(T_FUNCTION);
             }
+            else if (strcmp(word, "read") == 0)
+            {
+                curr = create_token(T_READ);
+            }
+            else if (strcmp(word, "for") == 0)
+            {
+                curr = create_token(T_FOR);
+            }
+            else if (strcmp(word, "open") == 0)
+            {
+                curr = create_token(T_OPEN);
+            } 
+            else if (strcmp(word, "write") == 0)
+            {
+                curr = create_token(T_WRITE);
+            }
+            else if (strcmp(word, "close") == 0)
+            {
+                curr = create_token(T_CLOSE);
+            }
+            else if (strcmp(word, "if") == 0)
+            {
+                curr = create_token(T_IF);
+            }
+            else if (strcmp(word, "true") == 0)
+            {
+                curr = create_token(T_TRUE);
+                curr->value.boolean = true;
+            }
+            else if (strcmp(word, "false") == 0)
+            {
+                curr = create_token(T_FALSE);
+                curr->value.boolean = false;
+            }
             else
             {
                 curr = create_token(T_IDENTIFIER);

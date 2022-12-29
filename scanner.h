@@ -1,6 +1,7 @@
 #ifndef SCANNER_H
 #define SCANNER_H
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdlib.h>
 
 typedef enum
@@ -18,13 +19,21 @@ typedef enum
     T_QUOTATION,
     T_LET,
     T_FUNCTION,
-    T_OPEN
+    T_READ,
+    T_FOR,
+    T_OPEN,
+    T_CLOSE,
+    T_WRITE,
+    T_TRUE,
+    T_FALSE,
+    T_IF
 } token_type;
 
 typedef union
 {
     int i;
     char *str;
+    bool boolean;
 } token_value;
 
 typedef struct

@@ -22,7 +22,7 @@ expression *top(stack *s)
     return s->arr[(s->i) - 1];
 }
 
-expression *create_expression(enum expression_type type, int num_exp)
+expression *create_expression(expression_type type, int num_exp)
 {
     expression *exp = (expression*) malloc(sizeof(expression));
     exp->exps =  (expression**) malloc(sizeof(expression *) * num_exp);
@@ -46,7 +46,7 @@ expression* parse(tokens *token_collection){
         if (t->type == T_OPEN_PARAN)
         {
             token *t = token_collection->tokens[++i];
-            enum expression_type type;
+            expression_type type;
             int num;
             if (t->type == T_PLUS)
             {
@@ -83,6 +83,30 @@ expression* parse(tokens *token_collection){
                 type = E_FUNCTION;
                 num = 2;
             }
+            else if (t->type == T_READ)
+            {
+                type = E_READ;
+                num = 1;
+            }
+            else if (t->type == T_FOR)
+            {
+                type = E_FOR;
+                num = 2;
+            }else if(t->type == T_OPEN){
+                type = E_OPEN;
+                num = 2;
+            }else if(t->type == T_WRITE){
+                type = E_WRITE;
+                num = 2;
+            }
+            else if(t->type == T_CLOSE){
+                type = E_CLOSE;
+                num = 1;
+            }
+            else if(t->type == T_IF){
+                type = E_IF;
+                num = 2;
+            }
             else
             {
                 type = E_CALL;
@@ -94,7 +118,7 @@ expression* parse(tokens *token_collection){
             expression *exp = create_expression(type, num);
             push(&s, exp);
         }
-        else if (t->type == T_NUMERIC || t->type == T_STRING)
+        else if (t->type == T_NUMERIC || t->type == T_STRING || t->type == T_TRUE || t->type == T_FALSE)
         {
             expression *prev_exp = top(&s);
             expression *const_exp = create_expression(E_CONST, 0);
@@ -108,6 +132,14 @@ expression* parse(tokens *token_collection){
             case T_STRING:
                 const_exp->value.type = V_STRING;
                 const_exp->value.val.str = t->value.str;
+                break;
+            case T_TRUE:
+                const_exp->value.type = V_BOOL;
+                const_exp->value.val.boolean = t->value.boolean;
+                break;
+            case T_FALSE:
+                const_exp->value.type = V_BOOL;
+                const_exp->value.val.boolean = t->value.boolean;
                 break;
             }
 
