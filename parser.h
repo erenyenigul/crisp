@@ -36,6 +36,8 @@ typedef enum
     E_WRITE,
     E_CLOSE,
     E_IF,
+    E_NEGATION,
+    E_EQUAL
 }expression_type;
 
 typedef union

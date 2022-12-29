@@ -107,6 +107,13 @@ expression* parse(tokens *token_collection){
                 type = E_IF;
                 num = 2;
             }
+            else if(t->type == T_EXCLAMATION){
+                type = E_NEGATION;
+                num = 1;
+            }else if(t->type == T_EQUAL){
+                type = E_EQUAL;
+                num = 2;
+            }
             else
             {
                 type = E_CALL;

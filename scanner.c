@@ -50,6 +50,10 @@ tokens* scan(char* program, int n){
             curr = create_token(T_STAR);
         else if (program[i] == '/')
             curr = create_token(T_SLASH);
+        else if (program[i] == '!')
+            curr = create_token(T_EXCLAMATION);
+        else if (program[i] == '=')
+            curr = create_token(T_EQUAL);
         else if (program[i] == ' ')
             continue;
         else if (isdigit(program[i]))

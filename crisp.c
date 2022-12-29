@@ -61,7 +61,7 @@ expression_value eval(expression *exp, enviroment env)
         res.val = exp->value.val;
         res.type = exp->value.type;
         break;
-        
+
     case E_IDENTIFIER:
         for (int i = env.i - 1; i >= 0; i--)
         {
@@ -274,6 +274,27 @@ expression_value eval(expression *exp, enviroment env)
 
         res.type = V_NULL;
         break;
+    }
+    case E_NEGATION:{
+        bool boolean = eval(exp->exps[0], env).val.boolean;
+        
+        res.val.boolean = !boolean;
+        res.type = V_BOOL;
+    }
+    case E_EQUAL:{
+        expression_value val1 = eval(exp->exps[0], env);
+        expression_value val2 = eval(exp->exps[1], env);
+
+        if(val1.type != val2.type){
+            res.val.boolean = false;
+        }
+
+        if(val1.type == V_INT) res.type = val1.val.i == val2.val.i;
+        else if(val1.type == V_STRING) res.val.boolean = strcmp(val1.val.str, val2.val.str) == 0;
+        else if(val1.type == V_BOOL) res.val.boolean = val1.val.boolean == val2.val.boolean;
+        else if(val1.type == V_NULL) res.val.boolean = true;
+        
+        res.type = V_BOOL;
     }
     default:
         res.type = V_NULL;

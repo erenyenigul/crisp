@@ -26,7 +26,9 @@ typedef enum
     T_WRITE,
     T_TRUE,
     T_FALSE,
-    T_IF
+    T_IF,
+    T_EXCLAMATION,
+    T_EQUAL
 } token_type;
 
 typedef union
