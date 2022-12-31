@@ -25,13 +25,16 @@ int str2int(const char *str, int len)
     return ret;
 }
 
-bool is_string_char(char c){
+bool is_string_char(char c)
+{
     return isascii(c) && c != '"';
 }
 
-tokens* scan(char* program, int n){
-    tokens* program_tokens = malloc(sizeof(tokens));
+tokens *scan(char *program, int n)
+{
+    tokens *program_tokens = malloc(sizeof(tokens));
 
+    int line_number = 1;
     int last_token_index = 0;
 
     for (int i = 0; i < n; i++)
@@ -54,8 +57,12 @@ tokens* scan(char* program, int n){
             curr = create_token(T_EXCLAMATION);
         else if (program[i] == '=')
             curr = create_token(T_EQUAL);
-        else if (program[i] == ' ')
+        else if (program[i] == ' ' || program[i] == '\t')
             continue;
+        else if (program[i] == '\n'){
+            line_number++;
+            continue;
+        }
         else if (isdigit(program[i]))
         {
             int start = i;
@@ -71,7 +78,8 @@ tokens* scan(char* program, int n){
         {
             int start = i;
             int end = i;
-            while (isalpha(program[++i])){
+            while (isalpha(program[++i]))
+            {
                 end = i;
             }
             i--;
@@ -102,7 +110,7 @@ tokens* scan(char* program, int n){
             else if (strcmp(word, "open") == 0)
             {
                 curr = create_token(T_OPEN);
-            } 
+            }
             else if (strcmp(word, "write") == 0)
             {
                 curr = create_token(T_WRITE);
@@ -118,6 +126,11 @@ tokens* scan(char* program, int n){
             else if (strcmp(word, "true") == 0)
             {
                 curr = create_token(T_TRUE);
+                curr->value.boolean = true;
+            } 
+            else if (strcmp(word, "array") == 0)
+            {
+                curr = create_token(T_ARRAY);
                 curr->value.boolean = true;
             }
             else if (strcmp(word, "false") == 0)
@@ -138,26 +151,44 @@ tokens* scan(char* program, int n){
             i++;
             int start = i;
             int end = i;
-            while (is_string_char(program[i])){
+
+            while (is_string_char(program[i]))
+            {
                 end = i;
                 i++;
             }
-            if(program[i] != '"'){
-                printe("Strings must end with `\"`!");
-                continue;
+
+            if (i == start)
+            {
+                if(program[i] == '"' && program[i+1] == '"'){
+                    i += 2;
+                    while(program[i] != '"') i++;
+                    i += 1;
+                }
             }
-            
-            char word[end - start + 2];
 
-            strncpy(word, &program[start], end - start + 1);
-            word[end - start + 1] = '\0';
-            
-            curr = create_token(T_STRING);
-            char *str = malloc(sizeof(char) * end - start);
-            strncpy(str, &program[start], end - start + 1);
-            curr->value.str = str;
+            else
+            {
+                if (program[i] != '"')
+                {
+                    error(program, "Strings must end with `\"`!", line_number);
+
+                    continue;
+                }
+
+                char word[end - start + 2];
+
+                strncpy(word, &program[start], end - start + 1);
+                word[end - start + 1] = '\0';
+
+                curr = create_token(T_STRING);
+                char *str = malloc(sizeof(char) * end - start);
+                strncpy(str, &program[start], end - start + 1);
+                curr->value.str = str;
+            }
         }
-
+        
+        curr->line = line_number;
         program_tokens->tokens[last_token_index++] = curr;
     }
     program_tokens->n = last_token_index;

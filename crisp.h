@@ -10,5 +10,7 @@ typedef struct
     int i;
 } enviroment;
 
-void printe(char *msg);
+void printe(char *msg, int line);
+void printloc(char *program, int line);
+void error(char*msg, char *program, int line);
 #endif

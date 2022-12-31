@@ -28,7 +28,8 @@ typedef enum
     T_FALSE,
     T_IF,
     T_EXCLAMATION,
-    T_EQUAL
+    T_EQUAL,
+    T_ARRAY
 } token_type;
 
 typedef union
@@ -36,12 +37,14 @@ typedef union
     int i;
     char *str;
     bool boolean;
+    expression_value* array;
 } token_value;
 
 typedef struct
 {
     token_type type;
     token_value value;
+    int line;
 } token;
 
 typedef struct
@@ -50,5 +53,5 @@ typedef struct
     int n;
 } tokens;
 
-tokens *scan(char *program, int n);
+tokens *scan(char *program, int line);
 #endif

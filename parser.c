@@ -36,7 +36,7 @@ expression *create_expression(expression_type type, int num_exp)
 expression* parse(tokens *token_collection){
     stack s;
     expression *program;
-
+    
     s.i = 0;
 
     for (int i = 0; i < token_collection->n; i++)
@@ -123,6 +123,7 @@ expression* parse(tokens *token_collection){
             }
 
             expression *exp = create_expression(type, num);
+            exp->line = t->line;
             push(&s, exp);
         }
         else if (t->type == T_NUMERIC || t->type == T_STRING || t->type == T_TRUE || t->type == T_FALSE)
@@ -159,7 +160,7 @@ expression* parse(tokens *token_collection){
 
             const_exp->value.type = V_IDENTIFIER;
             const_exp->value.val.str = t->value.str;
-
+            
             prev_exp->exps[prev_exp->filled++] = const_exp;
         }
         else if (t->type == T_CLOSE_PARAN)

@@ -62,6 +62,7 @@ struct _expression
     int num_exps;
     int filled;
     expression_value value;
+    int line;
 
     struct _expression **exps;
 };
