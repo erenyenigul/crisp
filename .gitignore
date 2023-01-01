@@ -1,3 +1,5 @@
 .vscode
 crisp
 .DS_Store
+*.out
+crisp.dSYM
