@@ -414,7 +414,7 @@ expression_value eval(expression *exp, enviroment env, char *program)
         expression_value val1 =
             eval(get_list(exp->exps, 0), env, program);
         expression_value val2 =
-            eval(get_list(exp->exps, 0), env, program);
+            eval(get_list(exp->exps, 1), env, program);
 
         if (val1.type != val2.type)
         {

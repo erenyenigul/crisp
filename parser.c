@@ -208,6 +208,6 @@ expression *parse(tokens *token_collection)
         }
     }
     destroy_stack(s);
-
+    
     return program;
 };
