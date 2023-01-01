@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #define LANG_VERSION "<alpha 1.0.0>"
 
@@ -89,44 +90,74 @@ char *read_file_as_string(FILE *f)
     return buffer;
 }
 
-expression_value eval(expression *exp, environment env, char *program)
+expression_value eval(expression *exp, environment env, environment* global, char *program)
 {
     expression_value res;
+    res.type = V_NULL;
+
     switch (exp->type)
     {
     case E_MODULE:
     {
         for(int i=0; i< exp->exps->size; i++){
-            res = eval(get_list(exp->exps,i), env, program);    
+            res = eval(get_list(exp->exps,i), env, global, program);    
         }
         break;
     }
-        
+    case E_IMPORT:
+    {
+        char* module_path = ((expression*) get_list(exp->exps, 0))->value.val.str;
+        // concat .cr to module_path
+        char* module_path_c = malloc((strlen(module_path) + 4) * sizeof(char));
+        strcpy(module_path_c, module_path);
+        strcat(module_path_c, ".cr");
+
+        run_module(module_path_c, global);
+
+        free(module_path_c);
+        break;   
+    }
     case E_CONST:
         res.val = exp->value.val;
         res.type = exp->value.type;
         break;
 
-    case E_IDENTIFIER:
+    case E_IDENTIFIER:{
+        bool flag = false;
         for (int i = env.i - 1; i >= 0; i--)
         {
             if (strcmp(exp->value.val.str, env.ids[i]) == 0)
             {
                 res = env.vals[i];
+                flag = true;
                 break;
             }
         }
+        if(flag) break;
+        for (int i = global->i - 1; i >= 0; i--)
+        {
+            if (strcmp(exp->value.val.str, global->ids[i]) == 0)
+            {
+                res = global->vals[i];
+                flag = true;
+                break;
+            }
+        }
+        if(flag) break;
+
+        error(program, "Undefined identifier.", exp->line);
         break;
+    }
     case E_ADDITION:
     {
         expression_value val1 =
-            eval(get_list(exp->exps, 0), env, program);
+            eval(get_list(exp->exps, 0), env, global, program);
         if (val1.type == V_INT)
         {
             int sum = val1.val.i;
             for (int j = 1; j < exp->exps->size; j++)
             {
-                sum += eval(get_list(exp->exps, j), env, program).val.i;
+                sum += eval(get_list(exp->exps, j), env, global, program).val.i;
             }
 
             res.val.i = sum;
@@ -141,7 +172,7 @@ expression_value eval(expression *exp, environment env, char *program)
             for (int j = 1; j < exp->exps->size; j++)
             {
                 expression_value val2 =
-                    eval(get_list(exp->exps, j), env, program);
+                    eval(get_list(exp->exps, j), env, global, program);
 
                 len += strlen(val2.val.str);
                 concat_str = realloc(concat_str, (len + 1) * sizeof(char));
@@ -157,12 +188,12 @@ expression_value eval(expression *exp, environment env, char *program)
 
     case E_SUBTRACTION:
     {
-        expression_value val1 = eval(get_list(exp->exps, 0), env, program);
+        expression_value val1 = eval(get_list(exp->exps, 0), env, global, program);
 
         int substraction = val1.val.i;
         for (int j = 1; j < exp->exps->size; j++)
         {
-            substraction -= eval(get_list(exp->exps, j), env, program).val.i;
+            substraction -= eval(get_list(exp->exps, j), env, global, program).val.i;
         }
 
         res.val.i = substraction;
@@ -172,12 +203,12 @@ expression_value eval(expression *exp, environment env, char *program)
 
     case E_MULTIPLICATION:
     {
-        expression_value val1 = eval(get_list(exp->exps, 0), env, program);
+        expression_value val1 = eval(get_list(exp->exps, 0), env, global, program);
 
         int mult = val1.val.i;
         for (int j = 1; j < exp->exps->size; j++)
         {
-            mult *= eval(get_list(exp->exps, j), env, program).val.i;
+            mult *= eval(get_list(exp->exps, j), env, global, program).val.i;
         }
 
         res.val.i = mult;
@@ -191,7 +222,7 @@ expression_value eval(expression *exp, environment env, char *program)
         //     printe("Expected integers for /
         //     operation.");
 
-        int divisor = eval(get_list(exp->exps, 1), env, program).val.i;
+        int divisor = eval(get_list(exp->exps, 1), env, global, program).val.i;
 
         if (divisor == 0)
         {
@@ -206,7 +237,7 @@ expression_value eval(expression *exp, environment env, char *program)
         }
 
         res.val.i =
-            eval(get_list(exp->exps, 0), env, program).val.i / divisor;
+            eval(get_list(exp->exps, 0), env, global, program).val.i / divisor;
         res.type = V_INT;
         break;
     }
@@ -215,45 +246,46 @@ expression_value eval(expression *exp, environment env, char *program)
         for (int j = 0; j < exp->exps->size; j++)
         {
             expression_value value =
-                eval(get_list(exp->exps, j), env, program);
+                eval(get_list(exp->exps, j), env, global, program);
 
             switch (value.type)
             {
             case V_INT:
             {
-                printf("%d\n", value.val.i);
+                printf("%d", value.val.i);
                 break;
             }
             case V_STRING:
             {
-                printf("%s\n", value.val.str);
+                printf("%s", value.val.str);
                 break;
             }
             case V_NULL:
             {
-                printf("null\n");
+                printf("null");
                 break;
             }
             case V_BOOL:
             {
                 if (value.val.boolean)
-                    printf("true\n");
+                    printf("true");
                 else
-                    printf("false\n");
+                    printf("false");
                 break;
             }
             case V_FILE:
             {
-                printf("<file %d>\n", value.val.file->_file);
+                printf("<file %d>", value.val.file->_file);
                 break;
             }
             case V_FUNCTION:
             {
-                printf("<function>\n");
+                printf("<function>");
                 break;
             }
             }
         }
+        printf("\n");
 
         res.type = V_NULL;
         break;
@@ -267,7 +299,7 @@ expression_value eval(expression *exp, environment env, char *program)
         char *id =
             ((expression *)get_list(exp->exps, 0))->value.val.str;
         expression_value val =
-            eval(get_list(exp->exps, 1), env, program);
+            eval(get_list(exp->exps, 1), env, global, program);
 
         char *cpy = malloc(sizeof(char) * (strlen(id) + 1));
 
@@ -278,8 +310,26 @@ expression_value eval(expression *exp, environment env, char *program)
         env.i++;
 
         expression_value in =
-            eval(get_list(exp->exps, 2), env, program);
+            eval(get_list(exp->exps, 2), env, global, program);
         res = in;
+        break;
+    }
+    case E_DEFINE:
+    {
+        char *id =
+            ((expression *)get_list(exp->exps, 0))->value.val.str;
+        expression_value val =
+            eval(get_list(exp->exps, 1), env, global, program);
+
+        char *cpy = malloc(sizeof(char) * (strlen(id) + 1));
+
+        strcpy(cpy, id);
+        global->ids[global->i] = cpy;
+
+        global->vals[global->i] = val;
+        global->i++;
+
+        res.type = V_NULL;
         break;
     }
     case E_FUNCTION:
@@ -304,7 +354,7 @@ expression_value eval(expression *exp, environment env, char *program)
     case E_CALL:
     {
         function *f =
-            eval(get_list(exp->exps, 0), env, program).val.func;
+            eval(get_list(exp->exps, 0), env, global, program).val.func;
 
         if (f->ids->size != exp->exps->size - 1)
             error(program, "Wrong number of arguments.", exp->line);
@@ -314,11 +364,11 @@ expression_value eval(expression *exp, environment env, char *program)
         for (int i = 1; i < exp->exps->size; i++)
         {
             f_env.ids[f_env.i] = (char *)get_list(f->ids, i - 1);
-            f_env.vals[f_env.i] = eval(get_list(exp->exps, i), env, program);
+            f_env.vals[f_env.i] = eval(get_list(exp->exps, i), env, global, program);
             f_env.i++;
         }
 
-        res = eval(f->body, f_env, program);
+        res = eval(f->body, f_env, global, program);
         break;
     }
     case E_READ:
@@ -334,7 +384,7 @@ expression_value eval(expression *exp, environment env, char *program)
         else if (exp->exps->size == 1)
         {
             FILE *f =
-                eval(get_list(exp->exps, 0), env, program).val.file;
+                eval(get_list(exp->exps, 0), env, global, program).val.file;
             char *file_content = read_file_as_string(f);
 
             res.type = V_STRING;
@@ -346,7 +396,7 @@ expression_value eval(expression *exp, environment env, char *program)
     {
         char *id =
             ((expression *)get_list(exp->exps, 0))->value.val.str;
-        int n = eval(get_list(exp->exps, 1), env, program).val.i;
+        int n = eval(get_list(exp->exps, 1), env, global, program).val.i;
 
         for (int i = 0; i < n; i++)
         {
@@ -357,7 +407,7 @@ expression_value eval(expression *exp, environment env, char *program)
             env.ids[env.i] = id;
             env.vals[env.i] = val;
             env.i++;
-            res = eval(get_list(exp->exps, 2), env, program);
+            res = eval(get_list(exp->exps, 2), env, global, program);
         }
 
         break;
@@ -365,8 +415,8 @@ expression_value eval(expression *exp, environment env, char *program)
     case E_OPEN:
     {
         char *file_name =
-            eval(get_list(exp->exps, 0), env, program).val.str;
-        char *mode = eval(get_list(exp->exps, 1), env, program).val.str;
+            eval(get_list(exp->exps, 0), env, global, program).val.str;
+        char *mode = eval(get_list(exp->exps, 1), env, global, program).val.str;
 
         FILE *f = fopen(file_name, mode);
 
@@ -376,9 +426,9 @@ expression_value eval(expression *exp, environment env, char *program)
     }
     case E_WRITE:
     {
-        FILE *f = eval(get_list(exp->exps, 0), env, program).val.file;
+        FILE *f = eval(get_list(exp->exps, 0), env, global, program).val.file;
         char *content =
-            eval(get_list(exp->exps, 1), env, program).val.str;
+            eval(get_list(exp->exps, 1), env, global, program).val.str;
 
         fprintf(f, "%s", content);
         res.type = V_NULL;
@@ -388,16 +438,16 @@ expression_value eval(expression *exp, environment env, char *program)
     case E_IF:
     {
         bool boolean =
-            eval(get_list(exp->exps, 0), env, program).val.boolean;
+            eval(get_list(exp->exps, 0), env, global, program).val.boolean;
 
         if (boolean)
         {
-            res = eval(get_list(exp->exps, 1), env, program);
+            res = eval(get_list(exp->exps, 1), env, global, program);
         }
         else
         {
             if(exp->exps->size == 3){
-                res = eval(get_list(exp->exps, 2), env, program);
+                res = eval(get_list(exp->exps, 2), env, global, program);
             }else{
                 res.type = V_NULL;
             }
@@ -406,7 +456,7 @@ expression_value eval(expression *exp, environment env, char *program)
     }
     case E_CLOSE:
     {
-        FILE *f = eval(get_list(exp->exps, 0), env, program).val.file;
+        FILE *f = eval(get_list(exp->exps, 0), env, global, program).val.file;
         fclose(f);
 
         res.type = V_NULL;
@@ -415,7 +465,7 @@ expression_value eval(expression *exp, environment env, char *program)
     case E_NEGATION:
     {
         bool boolean =
-            eval(get_list(exp->exps, 0), env, program).val.boolean;
+            eval(get_list(exp->exps, 0), env, global, program).val.boolean;
 
         res.val.boolean = !boolean;
         res.type = V_BOOL;
@@ -423,9 +473,9 @@ expression_value eval(expression *exp, environment env, char *program)
     case E_EQUAL:
     {
         expression_value val1 =
-            eval(get_list(exp->exps, 0), env, program);
+            eval(get_list(exp->exps, 0), env, global, program);
         expression_value val2 =
-            eval(get_list(exp->exps, 1), env, program);
+            eval(get_list(exp->exps, 1), env, global, program);
 
         if (val1.type != val2.type)
         {
@@ -452,21 +502,39 @@ expression_value eval(expression *exp, environment env, char *program)
     return res;
 }
 
-expression_value run_program(char *program_buffer, int n)
+expression_value run_module(char* module_path, environment* global){
+    FILE *f = fopen(module_path, "r");
+    char *program_buffer = read_file_as_string(f);
+    fclose(f);
+    
+    tokens *program_tokens = scan(program_buffer, strlen(program_buffer));
+    expression *program = parse(program_tokens, program_buffer);
+    
+    environment env;
+    env.i = 0;
+
+    expression_value value = eval(program, env, global, program_buffer);
+
+    return value;
+}
+
+expression_value run(char *program_buffer, int n)
 {
     tokens *program_tokens = scan(program_buffer, n);
     expression *program = parse(program_tokens, program_buffer);
 
+    environment global;
+    global.i = 0;
     environment env;
     env.i = 0;
 
-    expression_value value = eval(program, env, program_buffer);
+    expression_value value = eval(program, env, &global, program_buffer);
 
     return value;
 }
 
 int main(int argc, char **argv)
-{
+{    
     if (argc == 1)
     {
         printf("Crisp %s\n\n", LANG_VERSION);
@@ -480,7 +548,7 @@ int main(int argc, char **argv)
         while (program_buffer[0] != '\0')
         {
             int n = strlen(program_buffer);
-            expression_value value = run_program(program_buffer, n);
+            expression_value value = run(program_buffer, n);
 
             if (value.type == V_INT)
                 printf("%d\n", value.val.i);
@@ -496,7 +564,7 @@ int main(int argc, char **argv)
         FILE *f = fopen(argv[1], "r");
         char *program_buffer = read_file_as_string(f);
 
-        run_program(program_buffer, strlen(program_buffer));
+        run(program_buffer, strlen(program_buffer));
         fclose(f);
     }
     else

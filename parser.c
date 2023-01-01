@@ -121,6 +121,11 @@ expression *parse(tokens *token_collection, char* program)
                 type = E_OPEN;
                 num = 2;
             }
+            else if (t->type == T_IMPORT)
+            {
+                type = E_IMPORT;
+                num = 1;
+            }
             else if (t->type == T_WRITE)
             {
                 type = E_WRITE;
@@ -194,6 +199,7 @@ expression *parse(tokens *token_collection, char* program)
 
             const_exp->value.type = V_IDENTIFIER;
             const_exp->value.val.str = t->value.str;
+            const_exp->line = t->line;
 
             add_list(prev_exp->exps, const_exp);
         }
