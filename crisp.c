@@ -90,7 +90,7 @@ char *read_file_as_string(FILE *f)
     return buffer;
 }
 
-expression_value eval(expression *exp, environment env, environment* global, char *program)
+expression_value eval(expression *exp, environment env, environment *global, char *program)
 {
     expression_value res;
     res.type = V_NULL;
@@ -99,30 +99,39 @@ expression_value eval(expression *exp, environment env, environment* global, cha
     {
     case E_MODULE:
     {
-        for(int i=0; i< exp->exps->size; i++){
-            res = eval(get_list(exp->exps,i), env, global, program);    
+        for (int i = 0; i < exp->exps->size; i++)
+        {
+            res = eval(get_list(exp->exps, i), env, global, program);
+        }
+        break;
+    }
+    case E_BEGIN:{
+        for (int i = 0; i < exp->exps->size; i++)
+        {
+            res = eval(get_list(exp->exps, i), env, global, program);
         }
         break;
     }
     case E_IMPORT:
     {
-        char* module_path = ((expression*) get_list(exp->exps, 0))->value.val.str;
+        char *module_path = ((expression *)get_list(exp->exps, 0))->value.val.str;
         // concat .cr to module_path
-        char* module_path_c = malloc((strlen(module_path) + 4) * sizeof(char));
+        char *module_path_c = malloc((strlen(module_path) + 4) * sizeof(char));
         strcpy(module_path_c, module_path);
         strcat(module_path_c, ".cr");
 
         run_module(module_path_c, global);
 
         free(module_path_c);
-        break;   
+        break;
     }
     case E_CONST:
         res.val = exp->value.val;
         res.type = exp->value.type;
         break;
 
-    case E_IDENTIFIER:{
+    case E_IDENTIFIER:
+    {
         bool flag = false;
         for (int i = env.i - 1; i >= 0; i--)
         {
@@ -133,7 +142,8 @@ expression_value eval(expression *exp, environment env, environment* global, cha
                 break;
             }
         }
-        if(flag) break;
+        if (flag)
+            break;
         for (int i = global->i - 1; i >= 0; i--)
         {
             if (strcmp(exp->value.val.str, global->ids[i]) == 0)
@@ -143,8 +153,9 @@ expression_value eval(expression *exp, environment env, environment* global, cha
                 break;
             }
         }
-        if(flag) break;
-
+        if (flag)
+            break;
+        
         error(program, "Undefined identifier.", exp->line);
         break;
     }
@@ -295,7 +306,7 @@ expression_value eval(expression *exp, environment env, environment* global, cha
         // if(!expect(exp, V_IDENTIFIER, V_ANY, V_ANY))
         //     printe("Expected an identifier in let
         //     expression.");
-        
+
         char *id =
             ((expression *)get_list(exp->exps, 0))->value.val.str;
         expression_value val =
@@ -340,12 +351,12 @@ expression_value eval(expression *exp, environment env, environment* global, cha
         for (int i = 0; i < exp->exps->size - 1; i++)
         {
             char *id = ((expression *)get_list(exp->exps, i))->value.val.str;
-
             char *cpy = malloc(sizeof(char) * (strlen(id) + 1));
             strcpy(cpy, id);
-            add_list(f->ids, cpy);
-        }
 
+            add_list(f->ids, &cpy);
+        }
+        
         f->body = (expression *)get_list(exp->exps, exp->exps->size - 1);
         res.val.func = f;
         res.type = V_FUNCTION;
@@ -363,7 +374,7 @@ expression_value eval(expression *exp, environment env, environment* global, cha
 
         for (int i = 1; i < exp->exps->size; i++)
         {
-            f_env.ids[f_env.i] = (char *)get_list(f->ids, i - 1);
+            f_env.ids[f_env.i] = *((char **) get_list(f->ids, i - 1));
             f_env.vals[f_env.i] = eval(get_list(exp->exps, i), env, global, program);
             f_env.i++;
         }
@@ -446,9 +457,12 @@ expression_value eval(expression *exp, environment env, environment* global, cha
         }
         else
         {
-            if(exp->exps->size == 3){
+            if (exp->exps->size == 3)
+            {
                 res = eval(get_list(exp->exps, 2), env, global, program);
-            }else{
+            }
+            else
+            {
                 res.type = V_NULL;
             }
         }
@@ -502,14 +516,15 @@ expression_value eval(expression *exp, environment env, environment* global, cha
     return res;
 }
 
-expression_value run_module(char* module_path, environment* global){
+expression_value run_module(char *module_path, environment *global)
+{
     FILE *f = fopen(module_path, "r");
     char *program_buffer = read_file_as_string(f);
     fclose(f);
-    
+
     tokens *program_tokens = scan(program_buffer, strlen(program_buffer));
     expression *program = parse(program_tokens, program_buffer);
-    
+
     environment env;
     env.i = 0;
 
@@ -534,7 +549,7 @@ expression_value run(char *program_buffer, int n)
 }
 
 int main(int argc, char **argv)
-{    
+{
     if (argc == 1)
     {
         printf("Crisp %s\n\n", LANG_VERSION);

@@ -41,7 +41,8 @@ typedef enum
     E_NEGATION,
     E_EQUAL,
     E_DEFINE,
-    E_IMPORT
+    E_IMPORT,
+    E_BEGIN
 } expression_type;
 
 typedef union

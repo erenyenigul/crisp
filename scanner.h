@@ -30,7 +30,8 @@ typedef enum {
 	T_EQUAL,
 	T_ARRAY,
     T_DEFINE,
-    T_IMPORT
+    T_IMPORT,
+    T_BEGIN
 } token_type;
 
 typedef union {

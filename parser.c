@@ -150,6 +150,10 @@ expression *parse(tokens *token_collection, char* program)
             {
                 type = E_EQUAL;
                 num = 2;
+            }else if (t->type == T_BEGIN)
+            {
+                type = E_BEGIN;
+                num = 2;
             }
             else
             {

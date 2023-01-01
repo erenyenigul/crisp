@@ -145,6 +145,10 @@ tokens *scan(char *program, int n)
             {
                 curr = create_token(T_IMPORT);
             }
+            else if (strcmp(word, "begin") == 0)
+            {
+                curr = create_token(T_BEGIN);
+            }
             else
             {
                 curr = create_token(T_IDENTIFIER);
