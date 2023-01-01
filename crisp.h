@@ -1,7 +1,7 @@
 #ifndef CRISP_H
 #define CRISP_H
-#include <stdio.h>
 #include "parser.h"
+#include <stdio.h>
 
 typedef struct
 {
@@ -12,5 +12,5 @@ typedef struct
 
 void printe(char *msg, int line);
 void printloc(char *program, int line);
-void error(char*msg, char *program, int line);
+void error(char *msg, char *program, int line);
 #endif

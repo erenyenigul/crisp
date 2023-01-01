@@ -1,43 +1,62 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdbool.h>
-#include <ctype.h>
-#include "crisp.h"
 #include "parser.h"
+#include "crisp.h"
+#include "list.h"
 #include "scanner.h"
+#include <ctype.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-void push(stack *s, expression *exp)
+stack *create_stack()
 {
-    s->arr[s->i++] = exp;
+    stack *s = malloc(sizeof(stack));
+    s->expressions = create_list(10, sizeof(expression));
+
+    return s;
+}
+
+expression* push_expression(stack *s, expression_type type, int num_exp, int line)
+{
+    expression *exp = calloc_list(s->expressions);
+    exp->type = type;
+    exp->exps = create_list(num_exp, sizeof(expression));
+    exp->line = line;     
+    return exp;
 }
 
 expression *pop(stack *s)
 {
-    return s->arr[--s->i];
+    expression *exp = malloc(sizeof(expression));
+    pop_list(s->expressions, s->expressions->size - 1, exp);
+
+    return exp;
 }
 
 expression *top(stack *s)
 {
-    return s->arr[(s->i) - 1];
+    return get_list(s->expressions, s->expressions->size - 1);
+}
+
+void destroy_stack(stack *s)
+{
+    destroy_list(s->expressions);
+    free(s);
 }
 
 expression *create_expression(expression_type type, int num_exp)
 {
-    expression *exp = (expression*) malloc(sizeof(expression));
-    exp->exps =  (expression**) malloc(sizeof(expression *) * num_exp);
-    exp->num_exps = num_exp;
-    exp->filled = 0;
+    expression *exp = (expression *)malloc(sizeof(expression));
+    exp->exps = create_list(num_exp, sizeof(expression));
     exp->type = type;
 
     return exp;
 }
 
-expression* parse(tokens *token_collection){
-    stack s;
+expression *parse(tokens *token_collection)
+{
+    stack *s = create_stack();
     expression *program;
-    
-    s.i = 0;
 
     for (int i = 0; i < token_collection->n; i++)
     {
@@ -92,25 +111,34 @@ expression* parse(tokens *token_collection){
             {
                 type = E_FOR;
                 num = 2;
-            }else if(t->type == T_OPEN){
+            }
+            else if (t->type == T_OPEN)
+            {
                 type = E_OPEN;
                 num = 2;
-            }else if(t->type == T_WRITE){
+            }
+            else if (t->type == T_WRITE)
+            {
                 type = E_WRITE;
                 num = 2;
             }
-            else if(t->type == T_CLOSE){
+            else if (t->type == T_CLOSE)
+            {
                 type = E_CLOSE;
                 num = 1;
             }
-            else if(t->type == T_IF){
+            else if (t->type == T_IF)
+            {
                 type = E_IF;
                 num = 2;
             }
-            else if(t->type == T_EXCLAMATION){
+            else if (t->type == T_EXCLAMATION)
+            {
                 type = E_NEGATION;
                 num = 1;
-            }else if(t->type == T_EQUAL){
+            }
+            else if (t->type == T_EQUAL)
+            {
                 type = E_EQUAL;
                 num = 2;
             }
@@ -122,13 +150,12 @@ expression* parse(tokens *token_collection){
                 i--;
             }
 
-            expression *exp = create_expression(type, num);
-            exp->line = t->line;
-            push(&s, exp);
+            expression *exp = push_expression(s, type, num, t->line);
         }
-        else if (t->type == T_NUMERIC || t->type == T_STRING || t->type == T_TRUE || t->type == T_FALSE)
+        else if (t->type == T_NUMERIC || t->type == T_STRING ||
+                 t->type == T_TRUE || t->type == T_FALSE)
         {
-            expression *prev_exp = top(&s);
+            expression *prev_exp = top(s);
             expression *const_exp = create_expression(E_CONST, 0);
 
             switch (t->type)
@@ -149,34 +176,38 @@ expression* parse(tokens *token_collection){
                 const_exp->value.type = V_BOOL;
                 const_exp->value.val.boolean = t->value.boolean;
                 break;
+            default:
+                break;
             }
 
-            prev_exp->exps[prev_exp->filled++] = const_exp;
+            add_list(prev_exp->exps, const_exp);
         }
         else if (t->type == T_IDENTIFIER)
         {
-            expression *prev_exp = top(&s);
-            expression *const_exp = create_expression(E_IDENTIFIER, 0);
+            expression *prev_exp = top(s);
+            expression *const_exp =
+                create_expression(E_IDENTIFIER, 0);
 
             const_exp->value.type = V_IDENTIFIER;
             const_exp->value.val.str = t->value.str;
-            
-            prev_exp->exps[prev_exp->filled++] = const_exp;
+
+            add_list(prev_exp->exps, const_exp);
         }
         else if (t->type == T_CLOSE_PARAN)
         {
-            expression *prev_exp = pop(&s);
-
-            if (s.i == 0)
+            expression *prev_exp = pop(s);
+            
+            if (s->expressions->size == 0)
             {
                 program = prev_exp;
                 break;
             }
-            expression *next_prev = top(&s);
+            expression *next_prev = top(s);
 
-            next_prev->exps[next_prev->filled++] = prev_exp;
+            add_list(next_prev->exps, prev_exp);
         }
     }
-    
+    destroy_stack(s);
+
     return program;
 };
