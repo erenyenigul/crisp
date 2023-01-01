@@ -12,5 +12,5 @@ typedef struct
 
 void printe(char *msg, int line);
 void printloc(char *program, int line);
-void error(char *msg, char *program, int line);
+void error(char *program, char *msg, int line);
 #endif

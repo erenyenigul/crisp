@@ -28,7 +28,8 @@ typedef enum {
 	T_IF,
 	T_EXCLAMATION,
 	T_EQUAL,
-	T_ARRAY
+	T_ARRAY,
+    T_DEFINE
 } token_type;
 
 typedef union {

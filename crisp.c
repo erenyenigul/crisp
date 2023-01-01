@@ -260,7 +260,7 @@ expression_value eval(expression *exp, enviroment env, char *program)
         // if(!expect(exp, V_IDENTIFIER, V_ANY, V_ANY))
         //     printe("Expected an identifier in let
         //     expression.");
-
+        
         char *id =
             ((expression *)get_list(exp->exps, 0))->value.val.str;
         expression_value val =
@@ -452,7 +452,7 @@ expression_value eval(expression *exp, enviroment env, char *program)
 expression_value run_program(char *program_buffer, int n)
 {
     tokens *program_tokens = scan(program_buffer, n);
-    expression *program = parse(program_tokens);
+    expression *program = parse(program_tokens, program_buffer);
 
     enviroment env;
     env.i = 0;

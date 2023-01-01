@@ -39,7 +39,8 @@ typedef enum
     E_CLOSE,
     E_IF,
     E_NEGATION,
-    E_EQUAL
+    E_EQUAL,
+    E_DEFINE
 } expression_type;
 
 typedef union
@@ -80,5 +81,5 @@ typedef struct
     array_list *expressions;
 } stack;
 
-expression *parse(tokens *token_collection);
+expression *parse(tokens *token_collection, char* program);
 #endif

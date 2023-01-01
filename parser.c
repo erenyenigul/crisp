@@ -53,18 +53,18 @@ expression *create_expression(expression_type type, int num_exp)
     return exp;
 }
 
-expression *parse(tokens *token_collection)
+expression *parse(tokens *token_collection, char* program)
 {
     stack *s = create_stack();
     expression *module = create_expression(E_MODULE, 1);
-
+    token *t;
     for (int i = 0; i < token_collection->n; i++)
     {
-        token *t = token_collection->tokens[i];
+        t = token_collection->tokens[i];
 
         if (t->type == T_OPEN_PARAN)
         {
-            token *t = token_collection->tokens[++i];
+            t = token_collection->tokens[++i];
             expression_type type;
             int num;
             if (t->type == T_PLUS)
@@ -96,6 +96,10 @@ expression *parse(tokens *token_collection)
             {
                 type = E_LET;
                 num = 3;
+            }else if (t->type == T_DEFINE)
+            {
+                type = E_DEFINE;
+                num = 2;
             }
             else if (t->type == T_FUNCTION)
             {
@@ -195,6 +199,8 @@ expression *parse(tokens *token_collection)
         }
         else if (t->type == T_CLOSE_PARAN)
         {
+            if(s->expressions->size == 0) error(program, "Unmatched paranthesis", t->line);
+
             expression *prev_exp = pop(s);
             
             if (s->expressions->size == 0)
@@ -207,6 +213,7 @@ expression *parse(tokens *token_collection)
             add_list(next_prev->exps, prev_exp);
         }
     }
+    if(s->expressions->size != 0) error(program, "Unmatched paranthesis", t->line);
     destroy_stack(s);
 
     return module;

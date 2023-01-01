@@ -1,10 +1,10 @@
-(print "lol")
+(print "hello world")
 (print "welcome modules")
 
-(let x "sda"
-(print x
+(let x "eren"
+(print (+ x " is " "my " "name")
 ))
 
-(for i 100 
+(for i 4 
     (print i)
 )
