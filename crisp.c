@@ -89,16 +89,19 @@ char *read_file_as_string(FILE *f)
     return buffer;
 }
 
-expression_value eval(expression *exp, enviroment env, char *program)
+expression_value eval(expression *exp, environment env, char *program)
 {
     expression_value res;
     switch (exp->type)
     {
     case E_MODULE:
+    {
         for(int i=0; i< exp->exps->size; i++){
             res = eval(get_list(exp->exps,i), env, program);    
         }
         break;
+    }
+        
     case E_CONST:
         res.val = exp->value.val;
         res.type = exp->value.type;
@@ -306,7 +309,7 @@ expression_value eval(expression *exp, enviroment env, char *program)
         if (f->ids->size != exp->exps->size - 1)
             error(program, "Wrong number of arguments.", exp->line);
 
-        enviroment f_env = env;
+        environment f_env = env;
 
         for (int i = 1; i < exp->exps->size; i++)
         {
@@ -454,7 +457,7 @@ expression_value run_program(char *program_buffer, int n)
     tokens *program_tokens = scan(program_buffer, n);
     expression *program = parse(program_tokens, program_buffer);
 
-    enviroment env;
+    environment env;
     env.i = 0;
 
     expression_value value = eval(program, env, program_buffer);

@@ -8,7 +8,7 @@ typedef struct
     char *ids[100];
     expression_value vals[100];
     int i;
-} enviroment;
+} environment;
 
 void printe(char *msg, int line);
 void printloc(char *program, int line);
