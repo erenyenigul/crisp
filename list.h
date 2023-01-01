@@ -4,11 +4,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct {
-	void *items;
-	size_t element_size;
-	size_t capacity;
-	size_t size;
+typedef struct
+{
+    void *items;
+    size_t element_size;
+    size_t capacity;
+    size_t size;
 } array_list;
 
 array_list *create_list(size_t initial_capacity, size_t element_size);

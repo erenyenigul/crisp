@@ -20,6 +20,7 @@ typedef enum
 
 typedef enum
 {
+    E_MODULE,
     E_CONST,
     E_ADDITION,
     E_SUBTRACTION,

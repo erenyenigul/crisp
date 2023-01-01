@@ -56,7 +56,7 @@ expression *create_expression(expression_type type, int num_exp)
 expression *parse(tokens *token_collection)
 {
     stack *s = create_stack();
-    expression *program;
+    expression *module = create_expression(E_MODULE, 1);
 
     for (int i = 0; i < token_collection->n; i++)
     {
@@ -199,8 +199,8 @@ expression *parse(tokens *token_collection)
             
             if (s->expressions->size == 0)
             {
-                program = prev_exp;
-                break;
+                add_list(module->exps, prev_exp);
+                continue;
             }
             expression *next_prev = top(s);
 
@@ -208,6 +208,6 @@ expression *parse(tokens *token_collection)
         }
     }
     destroy_stack(s);
-    
-    return program;
+
+    return module;
 };

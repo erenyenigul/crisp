@@ -92,9 +92,13 @@ char *read_file_as_string(FILE *f)
 expression_value eval(expression *exp, enviroment env, char *program)
 {
     expression_value res;
-
     switch (exp->type)
     {
+    case E_MODULE:
+        for(int i=0; i< exp->exps->size; i++){
+            res = eval(get_list(exp->exps,i), env, program);    
+        }
+        break;
     case E_CONST:
         res.val = exp->value.val;
         res.type = exp->value.type;
@@ -389,7 +393,11 @@ expression_value eval(expression *exp, enviroment env, char *program)
         }
         else
         {
-            res.type = V_NULL;
+            if(exp->exps->size == 3){
+                res = eval(get_list(exp->exps, 2), env, program);
+            }else{
+                res.type = V_NULL;
+            }
         }
         break;
     }
