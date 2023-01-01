@@ -1,1 +1,4 @@
 1. Efficent string concat
+2. Better stack implementation using linked list
+    Current implementation just uses an array list (from list.h) but it causes
+    a lot of unnecesary copying.
