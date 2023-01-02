@@ -52,16 +52,20 @@ tokens *scan(char *program, int n)
             curr = create_token(T_SLASH);
         else if (program[i] == '!')
             curr = create_token(T_EXCLAMATION);
-        else if (program[i] == '<'){
-            if(program[i+1] == '='){
+        else if (program[i] == '<')
+        {
+            if (program[i + 1] == '=')
+            {
                 curr = create_token(T_LESS_EQUAL);
                 i++;
             }
             else
                 curr = create_token(T_LESS);
         }
-        else if (program[i] == '>'){
-            if(program[i+1] == '='){
+        else if (program[i] == '>')
+        {
+            if (program[i + 1] == '=')
+            {
                 curr = create_token(T_GREATER_EQUAL);
                 i++;
             }

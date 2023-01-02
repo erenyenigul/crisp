@@ -105,7 +105,8 @@ expression_value eval(expression *exp, environment env, environment *global, cha
         }
         break;
     }
-    case E_BEGIN:{
+    case E_BEGIN:
+    {
         for (int i = 0; i < exp->exps->size; i++)
         {
             res = eval(get_list(exp->exps, i), env, global, program);
@@ -129,51 +130,61 @@ expression_value eval(expression *exp, environment env, environment *global, cha
         res.val = exp->value.val;
         res.type = exp->value.type;
         break;
-    case E_AND:{
+    case E_AND:
+    {
         bool val = eval(get_list(exp->exps, 0), env, global, program).val.boolean;
-        for(int i=1; i<exp->exps->size; i++){
+        for (int i = 1; i < exp->exps->size; i++)
+        {
             val = val && eval(get_list(exp->exps, i), env, global, program).val.boolean;
         }
 
         res.val.boolean = val;
         res.type = V_BOOL;
         break;
-    }case E_OR:{
+    }
+    case E_OR:
+    {
         bool val = eval(get_list(exp->exps, 0), env, global, program).val.boolean;
-        for(int i=1; i<exp->exps->size; i++){
+        for (int i = 1; i < exp->exps->size; i++)
+        {
             val = val || eval(get_list(exp->exps, i), env, global, program).val.boolean;
         }
 
         res.val.boolean = val;
         res.type = V_BOOL;
         break;
-    }case E_LESS:{
+    }
+    case E_LESS:
+    {
         int val1 = eval(get_list(exp->exps, 0), env, global, program).val.i;
         int val2 = eval(get_list(exp->exps, 1), env, global, program).val.i;
-        
+
         res.val.boolean = val1 < val2;
         res.type = V_BOOL;
         break;
-    }case E_LESS_EQUAL:{
+    }
+    case E_LESS_EQUAL:
+    {
         int val1 = eval(get_list(exp->exps, 0), env, global, program).val.i;
         int val2 = eval(get_list(exp->exps, 1), env, global, program).val.i;
-        
 
         res.val.boolean = val1 <= val2;
         res.type = V_BOOL;
         break;
-    }case E_GREATER:{
+    }
+    case E_GREATER:
+    {
         int val1 = eval(get_list(exp->exps, 0), env, global, program).val.i;
         int val2 = eval(get_list(exp->exps, 1), env, global, program).val.i;
-        
 
         res.val.boolean = val1 > val2;
         res.type = V_BOOL;
         break;
-    }case E_GREATER_EQUAL:{
+    }
+    case E_GREATER_EQUAL:
+    {
         int val1 = eval(get_list(exp->exps, 0), env, global, program).val.i;
         int val2 = eval(get_list(exp->exps, 1), env, global, program).val.i;
-        
 
         res.val.boolean = val1 >= val2;
         res.type = V_BOOL;
@@ -204,7 +215,7 @@ expression_value eval(expression *exp, environment env, environment *global, cha
         }
         if (flag)
             break;
-        
+
         printf("%s\n", exp->value.val.str);
         error(program, "Undefined identifier.", exp->line);
         break;
@@ -424,7 +435,7 @@ expression_value eval(expression *exp, environment env, environment *global, cha
 
         for (int i = 1; i < exp->exps->size; i++)
         {
-            f_env.ids[f_env.i] = *((char **) get_list(f->ids, i - 1));
+            f_env.ids[f_env.i] = *((char **)get_list(f->ids, i - 1));
             f_env.vals[f_env.i] = eval(get_list(exp->exps, i), env, global, program);
             f_env.i++;
         }

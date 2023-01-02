@@ -89,5 +89,5 @@ typedef struct
     array_list *expressions;
 } stack;
 
-expression *parse(tokens *token_collection, char* program);
+expression *parse(tokens *token_collection, char *program);
 #endif

@@ -16,12 +16,12 @@ stack *create_stack()
     return s;
 }
 
-expression* push_expression(stack *s, expression_type type, int num_exp, int line)
+expression *push_expression(stack *s, expression_type type, int num_exp, int line)
 {
     expression *exp = calloc_list(s->expressions);
     exp->type = type;
     exp->exps = create_list(num_exp, sizeof(expression));
-    exp->line = line;     
+    exp->line = line;
     return exp;
 }
 
@@ -53,7 +53,7 @@ expression *create_expression(expression_type type, int num_exp)
     return exp;
 }
 
-expression *parse(tokens *token_collection, char* program)
+expression *parse(tokens *token_collection, char *program)
 {
     stack *s = create_stack();
     expression *module = create_expression(E_MODULE, 1);
@@ -96,7 +96,8 @@ expression *parse(tokens *token_collection, char* program)
             {
                 type = E_LET;
                 num = 3;
-            }else if (t->type == T_DEFINE)
+            }
+            else if (t->type == T_DEFINE)
             {
                 type = E_DEFINE;
                 num = 2;
@@ -150,7 +151,8 @@ expression *parse(tokens *token_collection, char* program)
             {
                 type = E_OR;
                 num = 2;
-            }else if (t->type == T_AND)
+            }
+            else if (t->type == T_AND)
             {
                 type = E_AND;
                 num = 2;
@@ -164,13 +166,19 @@ expression *parse(tokens *token_collection, char* program)
             {
                 type = E_LESS;
                 num = 2;
-            }else if(t->type == T_LESS_EQUAL){
+            }
+            else if (t->type == T_LESS_EQUAL)
+            {
                 type = E_LESS_EQUAL;
                 num = 2;
-            }else if(t->type == T_GREATER_EQUAL){
+            }
+            else if (t->type == T_GREATER_EQUAL)
+            {
                 type = E_GREATER_EQUAL;
                 num = 2;
-            }else if(t->type == T_GREATER){
+            }
+            else if (t->type == T_GREATER)
+            {
                 type = E_GREATER;
                 num = 2;
             }
@@ -233,10 +241,11 @@ expression *parse(tokens *token_collection, char* program)
         }
         else if (t->type == T_CLOSE_PARAN)
         {
-            if(s->expressions->size == 0) error(program, "Unmatched paranthesis", t->line);
+            if (s->expressions->size == 0)
+                error(program, "Unmatched paranthesis", t->line);
 
             expression *prev_exp = pop(s);
-            
+
             if (s->expressions->size == 0)
             {
                 add_list(module->exps, prev_exp);
@@ -247,7 +256,8 @@ expression *parse(tokens *token_collection, char* program)
             add_list(next_prev->exps, prev_exp);
         }
     }
-    if(s->expressions->size != 0) error(program, "Unmatched paranthesis", t->line);
+    if (s->expressions->size != 0)
+        error(program, "Unmatched paranthesis", t->line);
     destroy_stack(s);
 
     return module;

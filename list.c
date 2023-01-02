@@ -45,7 +45,7 @@ void *calloc_list(array_list *list)
     void *item = list->items + list->size * list->element_size;
     memset(item, 0, list->element_size);
     list->size++;
-    
+
     return item;
 }
 
