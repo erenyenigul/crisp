@@ -129,7 +129,56 @@ expression_value eval(expression *exp, environment env, environment *global, cha
         res.val = exp->value.val;
         res.type = exp->value.type;
         break;
+    case E_AND:{
+        bool val = eval(get_list(exp->exps, 0), env, global, program).val.boolean;
+        for(int i=1; i<exp->exps->size; i++){
+            val = val && eval(get_list(exp->exps, i), env, global, program).val.boolean;
+        }
 
+        res.val.boolean = val;
+        res.type = V_BOOL;
+        break;
+    }case E_OR:{
+        bool val = eval(get_list(exp->exps, 0), env, global, program).val.boolean;
+        for(int i=1; i<exp->exps->size; i++){
+            val = val || eval(get_list(exp->exps, i), env, global, program).val.boolean;
+        }
+
+        res.val.boolean = val;
+        res.type = V_BOOL;
+        break;
+    }case E_LESS:{
+        int val1 = eval(get_list(exp->exps, 0), env, global, program).val.i;
+        int val2 = eval(get_list(exp->exps, 1), env, global, program).val.i;
+        
+        res.val.boolean = val1 < val2;
+        res.type = V_BOOL;
+        break;
+    }case E_LESS_EQUAL:{
+        int val1 = eval(get_list(exp->exps, 0), env, global, program).val.i;
+        int val2 = eval(get_list(exp->exps, 1), env, global, program).val.i;
+        
+
+        res.val.boolean = val1 <= val2;
+        res.type = V_BOOL;
+        break;
+    }case E_GREATER:{
+        int val1 = eval(get_list(exp->exps, 0), env, global, program).val.i;
+        int val2 = eval(get_list(exp->exps, 1), env, global, program).val.i;
+        
+
+        res.val.boolean = val1 > val2;
+        res.type = V_BOOL;
+        break;
+    }case E_GREATER_EQUAL:{
+        int val1 = eval(get_list(exp->exps, 0), env, global, program).val.i;
+        int val2 = eval(get_list(exp->exps, 1), env, global, program).val.i;
+        
+
+        res.val.boolean = val1 >= val2;
+        res.type = V_BOOL;
+        break;
+    }
     case E_IDENTIFIER:
     {
         bool flag = false;
@@ -156,6 +205,7 @@ expression_value eval(expression *exp, environment env, environment *global, cha
         if (flag)
             break;
         
+        printf("%s\n", exp->value.val.str);
         error(program, "Undefined identifier.", exp->line);
         break;
     }
@@ -356,7 +406,7 @@ expression_value eval(expression *exp, environment env, environment *global, cha
 
             add_list(f->ids, &cpy);
         }
-        
+
         f->body = (expression *)get_list(exp->exps, exp->exps->size - 1);
         res.val.func = f;
         res.type = V_FUNCTION;

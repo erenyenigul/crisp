@@ -42,7 +42,13 @@ typedef enum
     E_EQUAL,
     E_DEFINE,
     E_IMPORT,
-    E_BEGIN
+    E_BEGIN,
+    E_AND,
+    E_OR,
+    E_GREATER,
+    E_GREATER_EQUAL,
+    E_LESS,
+    E_LESS_EQUAL
 } expression_type;
 
 typedef union

@@ -31,7 +31,13 @@ typedef enum {
 	T_ARRAY,
     T_DEFINE,
     T_IMPORT,
-    T_BEGIN
+    T_BEGIN,
+    T_AND,
+    T_OR,
+    T_LESS,
+    T_GREATER,
+    T_LESS_EQUAL,
+    T_GREATER_EQUAL
 } token_type;
 
 typedef union {

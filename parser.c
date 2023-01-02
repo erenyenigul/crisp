@@ -146,11 +146,35 @@ expression *parse(tokens *token_collection, char* program)
                 type = E_NEGATION;
                 num = 1;
             }
+            else if (t->type == T_OR)
+            {
+                type = E_OR;
+                num = 2;
+            }else if (t->type == T_AND)
+            {
+                type = E_AND;
+                num = 2;
+            }
             else if (t->type == T_EQUAL)
             {
                 type = E_EQUAL;
                 num = 2;
-            }else if (t->type == T_BEGIN)
+            }
+            else if (t->type == T_LESS)
+            {
+                type = E_LESS;
+                num = 2;
+            }else if(t->type == T_LESS_EQUAL){
+                type = E_LESS_EQUAL;
+                num = 2;
+            }else if(t->type == T_GREATER_EQUAL){
+                type = E_GREATER_EQUAL;
+                num = 2;
+            }else if(t->type == T_GREATER){
+                type = E_GREATER;
+                num = 2;
+            }
+            else if (t->type == T_BEGIN)
             {
                 type = E_BEGIN;
                 num = 2;

@@ -52,8 +52,48 @@ tokens *scan(char *program, int n)
             curr = create_token(T_SLASH);
         else if (program[i] == '!')
             curr = create_token(T_EXCLAMATION);
+        else if (program[i] == '<'){
+            if(program[i+1] == '='){
+                curr = create_token(T_LESS_EQUAL);
+                i++;
+            }
+            else
+                curr = create_token(T_LESS);
+        }
+        else if (program[i] == '>'){
+            if(program[i+1] == '='){
+                curr = create_token(T_GREATER_EQUAL);
+                i++;
+            }
+            else
+                curr = create_token(T_GREATER);
+        }
         else if (program[i] == '=')
             curr = create_token(T_EQUAL);
+        else if (program[i] == '|')
+        {
+            if (program[i + 1] == '|')
+            {
+                curr = create_token(T_OR);
+                i++;
+            }
+            else
+            {
+                error(program, "Invalid token: |", line_number);
+            }
+        }
+        else if (program[i] == '&')
+        {
+            if (program[i + 1] == '&')
+            {
+                curr = create_token(T_AND);
+                i++;
+            }
+            else
+            {
+                error(program, "Invalid token: &", line_number);
+            }
+        }
         else if (program[i] == ' ' || program[i] == '\t')
             continue;
         else if (program[i] == '\n')
