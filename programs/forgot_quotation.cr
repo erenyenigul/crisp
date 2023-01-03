@@ -1,1 +1,1 @@
-(let x 10 (let y x (/ 1 (- x y))))
+(let x 10 (let y x (print "i forgot something but i dont know what)))

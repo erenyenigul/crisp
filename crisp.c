@@ -116,12 +116,19 @@ expression_value eval(expression *exp, environment env, environment *global, cha
     case E_IMPORT:
     {
         char *module_path = ((expression *)get_list(exp->exps, 0))->value.val.str;
-        // concat .cr to module_path
+        
+        // Concat .cr to module_path
         char *module_path_c = malloc((strlen(module_path) + 4) * sizeof(char));
         strcpy(module_path_c, module_path);
         strcat(module_path_c, ".cr");
 
-        run_module(module_path_c, global);
+        FILE *f = fopen(module_path, "r");
+        if(f == NULL) error(program, "Module not found", exp->line);
+    
+        char *program_buffer = read_file_as_string(f);
+        fclose(f);
+
+        run_module(program_buffer, global);
 
         free(module_path_c);
         break;
@@ -418,7 +425,7 @@ expression_value eval(expression *exp, environment env, environment *global, cha
             add_list(f->ids, &cpy);
         }
 
-        f->body = (expression *)get_list(exp->exps, exp->exps->size - 1);
+        f->body = (expression *) get_list(exp->exps, exp->exps->size - 1);
         res.val.func = f;
         res.type = V_FUNCTION;
         break;
@@ -577,12 +584,8 @@ expression_value eval(expression *exp, environment env, environment *global, cha
     return res;
 }
 
-expression_value run_module(char *module_path, environment *global)
+expression_value run_module(char *program_buffer, environment *global)
 {
-    FILE *f = fopen(module_path, "r");
-    char *program_buffer = read_file_as_string(f);
-    fclose(f);
-
     tokens *program_tokens = scan(program_buffer, strlen(program_buffer));
     expression *program = parse(program_tokens, program_buffer);
 
