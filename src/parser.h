@@ -78,10 +78,18 @@ typedef struct
     int line;
 } expression;
 
+typedef struct environment
+{
+    char *ids[100];
+    expression_value vals[100];
+    int i;
+} environment;
+
 struct _function
 {
     array_list *ids;
     expression *body;
+    environment env;
 };
 
 typedef struct

@@ -1,7 +1,3 @@
-#include "crisp.h"
-#include "list.h"
-#include "parser.h"
-#include "scanner.h"
 #include <ctype.h>
 #include <math.h>
 #include <stdarg.h>
@@ -10,6 +6,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include "crisp.h"
+#include "list.h"
+#include "scanner.h"
+
 
 #define LANG_VERSION "<alpha 1.0.0>"
 
@@ -425,21 +425,22 @@ expression_value eval(expression *exp, environment env, environment *global, cha
             add_list(f->ids, &cpy);
         }
 
-        f->body = (expression *) get_list(exp->exps, exp->exps->size - 1);
+        f->body = (expression *) get_list(exp->exps, exp->exps->size - 1);        
+        f->env = env;
+
         res.val.func = f;
         res.type = V_FUNCTION;
         break;
     }
     case E_CALL:
     {
-        function *f =
-            eval(get_list(exp->exps, 0), env, global, program).val.func;
+        function *f = eval(get_list(exp->exps, 0), env, global, program).val.func;
 
         if (f->ids->size != exp->exps->size - 1)
             error(program, "Wrong number of arguments.", exp->line);
 
-        environment f_env = env;
-
+        environment f_env = f->env;
+        
         for (int i = 1; i < exp->exps->size; i++)
         {
             f_env.ids[f_env.i] = *((char **)get_list(f->ids, i - 1));
