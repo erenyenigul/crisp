@@ -3,3 +3,7 @@ crisp
 .DS_Store
 *.out
 crisp.dSYM
+CMakeCache.txt
+cmake_install.cmake
+CMakeFiles
+Makefile
