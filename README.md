@@ -7,7 +7,7 @@ crisp is an interpreted functional programming language, inpsired by Lisp. It is
 
 ### Hello World Program
 
-Before we start, you should know that you will be using parenthesis more than you have used ever since. To display a `Hello World` message with Crisp, run the following code.
+Before we start, you should know that you will be using parenthesis more than you have ever used. To display a `Hello World` message with Crisp, run the following code.
 ```scheme
     (print "Hello world")
 ```
@@ -32,7 +32,7 @@ You can also use `+` operator on strings to concatenate them:
 
 ### Variables
 
-You can define variables two ways: using `let` or `define`. The difference between those two is that `define` allows you to define variables globally, whereas let excepts you to give the scope of this variable as an expression.
+You can define variables two ways: using `let` or `define`. The difference between those two is that `define` allows you to define variables globally, whereas `let` expects you to give the scope of this variable as an expression.
 
 ```scheme
 (define x 10)
