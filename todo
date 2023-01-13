@@ -8,3 +8,5 @@
 
 3. memory leaks fix
     there are A LOT OF memory leaks at the moment. use valgrind or some other tool
+
+4. Expect function for checking if enough number of items and correct types are provided for any operation.
