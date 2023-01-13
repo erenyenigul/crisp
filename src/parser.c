@@ -225,7 +225,11 @@ expression *parse(tokens *token_collection, char *program)
                 break;
             }
 
-            add_list(prev_exp->exps, const_exp);
+            if(prev_exp == NULL){
+                add_list(module->exps, const_exp);
+            }else{
+                add_list(prev_exp->exps, const_exp);
+            }
         }
         else if (t->type == T_IDENTIFIER)
         {
@@ -236,8 +240,12 @@ expression *parse(tokens *token_collection, char *program)
             const_exp->value.type = V_IDENTIFIER;
             const_exp->value.val.str = t->value.str;
             const_exp->line = t->line;
-
-            add_list(prev_exp->exps, const_exp);
+            if(prev_exp == NULL){
+                add_list(module->exps, const_exp);
+            }
+            else{
+                add_list(prev_exp->exps, const_exp);
+            }
         }
         else if (t->type == T_CLOSE_PARAN)
         {

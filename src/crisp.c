@@ -1,3 +1,9 @@
+#include "parser.h"
+#ifdef __unix__
+# include <unistd.h>
+#elif defined _WIN32
+# include <windows.h>   
+#endif
 #include <ctype.h>
 #include <math.h>
 #include <stdarg.h>
@@ -5,13 +11,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include "crisp.h"
 #include "list.h"
 #include "scanner.h"
 
-
-#define LANG_VERSION "<alpha 1.0.0>"
+#define LANG_VERSION "alpha 1.0.1"
 
 /*
 bool expect(expression *exp, ...)
@@ -29,6 +33,55 @@ va_arg(valist, expression_value_type) != V_ANY) return false; puts("lol");
 
     return true;
 }*/
+void print_expression_value(expression_value value, bool print_null)
+{
+    switch (value.type)
+    {
+    case V_INT:
+    {
+        printf("%d", value.val.i);
+        break;
+    }
+    case V_STRING:
+    {
+        printf("%s", value.val.str);
+        break;
+    }
+    case V_NULL:
+    {
+        if(print_null) printf("null");
+        break;
+    }
+    case V_BOOL:
+    {
+        if (value.val.boolean)
+            printf("true");
+        else
+            printf("false");
+        break;
+    }
+    case V_FILE:
+    {
+        printf("<file %d>", value.val.file->_file);
+        break;
+    }
+    case V_FUNCTION:
+    {
+        printf("<function>");
+        break;
+    }
+    }
+}
+
+char* getcurrentdir(){
+    char* buffer = malloc(1024);
+    #ifdef __unix__
+    getcwd(buffer, 1024);
+    #elif defined _WIN32
+    GetCurrentDirectory(1024, buffer);
+    #endif
+    return buffer;
+}
 
 void printloc(char *program, int line)
 {
@@ -56,7 +109,7 @@ void printloc(char *program, int line)
 
 void printe(char *msg, int line)
 {
-    printf("\033[1m\033[31m[Crisp.Exception]\033[0m At line "
+    printf("\033[31;1m[Crisp Exception]\033[0m At line "
            "\033[31m\033[1m%d\033[0m : %s\n\n",
            line, msg);
 }
@@ -115,14 +168,14 @@ expression_value eval(expression *exp, environment env, environment *global, cha
     }
     case E_IMPORT:
     {
+        char* cwd = getcurrentdir();
         char *module_path = ((expression *)get_list(exp->exps, 0))->value.val.str;
         
-        // Concat .cr to module_path
-        char *module_path_c = malloc((strlen(module_path) + 4) * sizeof(char));
-        strcpy(module_path_c, module_path);
-        strcat(module_path_c, ".cr");
-
-        FILE *f = fopen(module_path, "r");
+        strcat(cwd, module_path);
+        strcat(cwd, ".cr");
+        printf("%s\n", cwd);
+        
+        FILE *f = fopen(cwd, "r");
         if(f == NULL) error(program, "Module not found", exp->line);
     
         char *program_buffer = read_file_as_string(f);
@@ -130,7 +183,7 @@ expression_value eval(expression *exp, environment env, environment *global, cha
 
         run_module(program_buffer, global);
 
-        free(module_path_c);
+        free(cwd);
         break;
     }
     case E_CONST:
@@ -327,42 +380,7 @@ expression_value eval(expression *exp, environment env, environment *global, cha
             expression_value value =
                 eval(get_list(exp->exps, j), env, global, program);
 
-            switch (value.type)
-            {
-            case V_INT:
-            {
-                printf("%d", value.val.i);
-                break;
-            }
-            case V_STRING:
-            {
-                printf("%s", value.val.str);
-                break;
-            }
-            case V_NULL:
-            {
-                printf("null");
-                break;
-            }
-            case V_BOOL:
-            {
-                if (value.val.boolean)
-                    printf("true");
-                else
-                    printf("false");
-                break;
-            }
-            case V_FILE:
-            {
-                printf("<file %d>", value.val.file->_file);
-                break;
-            }
-            case V_FUNCTION:
-            {
-                printf("<function>");
-                break;
-            }
-            }
+            print_expression_value(value, true);
         }
         printf("\n");
 
@@ -517,8 +535,7 @@ expression_value eval(expression *exp, environment env, environment *global, cha
     }
     case E_IF:
     {
-        bool boolean =
-            eval(get_list(exp->exps, 0), env, global, program).val.boolean;
+        bool boolean = eval(get_list(exp->exps, 0), env, global, program).val.boolean;
 
         if (boolean)
         {
@@ -552,6 +569,8 @@ expression_value eval(expression *exp, environment env, environment *global, cha
 
         res.val.boolean = !boolean;
         res.type = V_BOOL;
+        
+        break;
     }
     case E_EQUAL:
     {
@@ -576,6 +595,7 @@ expression_value eval(expression *exp, environment env, environment *global, cha
             res.val.boolean = true;
 
         res.type = V_BOOL;
+        break;
     }
     default:
         res.type = V_NULL;
@@ -598,26 +618,32 @@ expression_value run_module(char *program_buffer, environment *global)
     return value;
 }
 
-expression_value run(char *program_buffer, int n)
+expression_value run_with_global_env(char *program_buffer, int n, environment *global)
 {
     tokens *program_tokens = scan(program_buffer, n);
     expression *program = parse(program_tokens, program_buffer);
 
-    environment global;
-    global.i = 0;
     environment env;
     env.i = 0;
 
-    expression_value value = eval(program, env, &global, program_buffer);
+    expression_value value = eval(program, env, global, program_buffer);
 
     return value;
+}
+
+expression_value run(char *program_buffer, int n)
+{
+    environment global;
+    global.i = 0;
+  
+    return run_with_global_env(program_buffer, n, &global);
 }
 
 int main(int argc, char **argv)
 {
     if (argc == 1)
     {
-        printf("Crisp %s\n\n", LANG_VERSION);
+        printf("\033[1;41;37m C \033[1;42m R \033[1;43m I \033[1;44m S \033[1;45m P \033[0m| %s\n\n", LANG_VERSION);
 
         char program_buffer[1000];
         program_buffer[0] = '\0';
@@ -625,17 +651,17 @@ int main(int argc, char **argv)
         printf(">  ");
         fgets(program_buffer, sizeof(program_buffer), stdin);
 
+        environment global;
+        global.i = 0;
+    
         while (program_buffer[0] != '\0')
         {
             int n = strlen(program_buffer);
-            expression_value value = run(program_buffer, n);
+            expression_value value = run_with_global_env(program_buffer, n, &global);
 
-            if (value.type == V_INT)
-                printf("%d\n", value.val.i);
-            else if (value.type == V_STRING)
-                printf("%s\n", value.val.str);
+            print_expression_value(value, false);
 
-            printf(">  ");
+            printf("\n>  ");
             fgets(program_buffer, sizeof(program_buffer), stdin);
         }
     }

@@ -38,7 +38,8 @@ typedef enum
     T_LESS,
     T_GREATER,
     T_LESS_EQUAL,
-    T_GREATER_EQUAL
+    T_GREATER_EQUAL,
+    T_DOT
 } token_type;
 
 typedef union

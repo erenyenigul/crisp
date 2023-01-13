@@ -86,6 +86,10 @@ tokens *scan(char *program, int n)
                 error(program, "Invalid token: |", line_number);
             }
         }
+        else if (program[i] == '.')
+        {
+            curr = create_token(T_DOT);
+        }
         else if (program[i] == '&')
         {
             if (program[i + 1] == '&')
