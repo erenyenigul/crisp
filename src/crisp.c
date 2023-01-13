@@ -197,7 +197,7 @@ expression_value eval(expression *exp, environment env, environment *global, cha
     case E_AND:
     {
         bool val = eval(get_list(exp->exps, 0), env, global, program).val.boolean;
-        for (int i = 1; i < exp->exps->size; i++)
+        for (int i = 1; val && i < exp->exps->size; i++)
         {
             val = val && eval(get_list(exp->exps, i), env, global, program).val.boolean;
         }
@@ -209,11 +209,11 @@ expression_value eval(expression *exp, environment env, environment *global, cha
     case E_OR:
     {
         bool val = eval(get_list(exp->exps, 0), env, global, program).val.boolean;
-        for (int i = 1; i < exp->exps->size; i++)
+        
+        for (int i = 1; !val && i < exp->exps->size; i++)
         {
             val = val || eval(get_list(exp->exps, i), env, global, program).val.boolean;
         }
-
         res.val.boolean = val;
         res.type = V_BOOL;
         break;
