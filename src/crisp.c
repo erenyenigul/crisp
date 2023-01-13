@@ -393,14 +393,19 @@ expression_value eval(expression *exp, environment env, environment *global, cha
     }
     case E_LET:
     {
-        // if(!expect(exp, V_IDENTIFIER, V_ANY, V_ANY))
-        //     printe("Expected an identifier in let
-        //     expression.");
+        expression *id_exp = (expression *)get_list(exp->exps, 0);
+        expression* eval_exp = (expression*) get_list(exp->exps, 1);
+        expression* in_exp = (expression*) get_list(exp->exps, 2);
 
-        char *id =
-            ((expression *)get_list(exp->exps, 0))->value.val.str;
-        expression_value val =
-            eval(get_list(exp->exps, 1), env, global, program);
+        // Expected fields
+        if (id_exp == NULL || id_exp->type != E_IDENTIFIER) error(program, "Expected identifier.", exp->line);   
+        if(eval_exp == NULL) error(program, "Expected expression.", exp->line);
+        if(in_exp == NULL) error(program, "Expected an expression where your identifier can be used.", exp->line);
+        // End of expected fiels
+
+        char *id = (id_exp)->value.val.str;
+        
+        expression_value val = eval(eval_exp, env, global, program);
 
         char *cpy = malloc(sizeof(char) * (strlen(id) + 1));
 
@@ -411,16 +416,22 @@ expression_value eval(expression *exp, environment env, environment *global, cha
         env.i++;
 
         expression_value in =
-            eval(get_list(exp->exps, 2), env, global, program);
+            eval(in_exp, env, global, program);
         res = in;
         break;
     }
     case E_DEFINE:
     {
-        char *id =
-            ((expression *)get_list(exp->exps, 0))->value.val.str;
-        expression_value val =
-            eval(get_list(exp->exps, 1), env, global, program);
+        expression *id_exp = (expression *)get_list(exp->exps, 0);
+        expression* eval_exp = (expression*) get_list(exp->exps, 1);
+        
+        // Expected fields
+        if (id_exp == NULL || id_exp->type != E_IDENTIFIER) error(program, "Expected identifier.", exp->line);   
+        if(eval_exp == NULL) error(program, "Expected expression.", exp->line);
+        // End of expected fiels
+        
+        char *id = (id_exp)->value.val.str;
+        expression_value val = eval(eval_exp, env, global, program);
 
         char *cpy = malloc(sizeof(char) * (strlen(id) + 1));
 
