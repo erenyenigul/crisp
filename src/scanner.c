@@ -88,7 +88,12 @@ tokens *scan(char *program, int n)
         }
         else if (program[i] == '.')
         {
-            curr = create_token(T_DOT);
+            if(program[i+1] == '.'){
+                curr = create_token(T_DOUBLE_DOT);
+                i++;
+            }else{
+                curr = create_token(T_DOT);
+            }
         }
         else if (program[i] == '&')
         {

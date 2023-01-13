@@ -234,18 +234,43 @@ expression *parse(tokens *token_collection, char *program)
         else if (t->type == T_IDENTIFIER)
         {
             expression *prev_exp = top(s);
-            expression *const_exp =
-                create_expression(E_IDENTIFIER, 0);
+            expression *const_exp = create_expression(E_IDENTIFIER, 0);
 
             const_exp->value.type = V_IDENTIFIER;
             const_exp->value.val.str = t->value.str;
             const_exp->line = t->line;
+            
             if(prev_exp == NULL){
                 add_list(module->exps, const_exp);
             }
             else{
                 add_list(prev_exp->exps, const_exp);
             }
+        }else if(t->type == T_DOT){
+            expression *prev_exp = top(s);
+            if(prev_exp == NULL || prev_exp->type != E_IMPORT || prev_exp->exps->size == 0) error(program, "Unexpected `.`", t->line);
+            
+            t = token_collection->tokens[++i];
+            
+            expression *const_exp = create_expression(E_IDENTIFIER, 0);
+
+            const_exp->value.type = V_IDENTIFIER;
+            const_exp->value.val.str = t->value.str;
+            const_exp->line = t->line;
+            
+            add_list(prev_exp->exps, const_exp);
+        }
+        else if(t->type == T_DOUBLE_DOT){
+            expression *prev_exp = top(s);
+            if(prev_exp == NULL || prev_exp->type != E_IMPORT) error(program, "Unexpected `..`", t->line);
+                        
+            expression *const_exp = create_expression(E_IDENTIFIER, 0);
+            
+            const_exp->value.type = V_IDENTIFIER;
+            const_exp->value.val.str = "..";
+            const_exp->line = t->line;
+            
+            add_list(prev_exp->exps, const_exp);
         }
         else if (t->type == T_CLOSE_PARAN)
         {

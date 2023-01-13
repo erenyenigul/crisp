@@ -1,7 +1,6 @@
-#include "parser.h"
-#ifdef __unix__
+#if defined(linux) || defined(__APPLE__)
 # include <unistd.h>
-#elif defined _WIN32
+#elif defined(_WIN32)
 # include <windows.h>   
 #endif
 #include <ctype.h>
@@ -14,6 +13,7 @@
 #include "crisp.h"
 #include "list.h"
 #include "scanner.h"
+#include "parser.h"
 
 #define LANG_VERSION "alpha 1.0.1"
 
@@ -75,9 +75,9 @@ void print_expression_value(expression_value value, bool print_null)
 
 char* getcurrentdir(){
     char* buffer = malloc(1024);
-    #ifdef __unix__
+    #if defined(linux) || defined(__APPLE__)
     getcwd(buffer, 1024);
-    #elif defined _WIN32
+    #elif defined(_WIN32)
     GetCurrentDirectory(1024, buffer);
     #endif
     return buffer;
@@ -169,10 +169,14 @@ expression_value eval(expression *exp, environment env, environment *global, cha
     case E_IMPORT:
     {
         char* cwd = getcurrentdir();
-        char *module_path = ((expression *)get_list(exp->exps, 0))->value.val.str;
         
-        strcat(cwd, module_path);
+        for(int i=0; i<exp->exps->size; i++){
+            char *module_path = ((expression *)get_list(exp->exps, i))->value.val.str;
+            strcat(cwd, "/");
+            strcat(cwd, module_path);
+        }
         strcat(cwd, ".cr");
+                
         printf("%s\n", cwd);
         
         FILE *f = fopen(cwd, "r");
