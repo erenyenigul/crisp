@@ -29,7 +29,7 @@ typedef enum
     T_IF,
     T_EXCLAMATION,
     T_EQUAL,
-    T_ARRAY,
+    T_LIST,
     T_DEFINE,
     T_IMPORT,
     T_BEGIN,
@@ -40,7 +40,14 @@ typedef enum
     T_LESS_EQUAL,
     T_GREATER_EQUAL,
     T_DOT,
-    T_DOUBLE_DOT
+    T_DOUBLE_DOT,
+    T_PUSH,
+    T_GET,
+    T_POP,
+    T_INSERT,
+    T_OPEN_BRACKET,
+    T_CLOSE_BRACKET,
+    T_CLASS
 } token_type;
 
 typedef union

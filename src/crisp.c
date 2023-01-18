@@ -70,6 +70,19 @@ void print_expression_value(expression_value value, bool print_null)
         printf("<function>");
         break;
     }
+    case V_REF:
+    {
+        array_list* list = value.val.ref;
+        int len = get_size_list(list);
+        
+        printf("[");
+        for(int i=0; i<len;i++){
+            expression_value* val = (expression_value*) get_list(list, i);
+            print_expression_value(*val, true);
+            if(i!=len-1) printf(", ");
+        }
+        printf("]");
+    }
     }
 }
 
@@ -166,6 +179,91 @@ expression_value eval(expression *exp, environment env, environment *global, cha
         }
         break;
     }
+    case E_LIST:
+    {
+        array_list* list = create_list(5, sizeof(expression_value));
+        int len = get_size_list(exp->exps);
+
+        for(int i=0; i<len; i++){
+            expression_value val = eval(get_list(exp->exps, i), env, global, program);
+            add_list(list, &val);
+        }
+
+        res.val.ref = list;
+        res.type = V_REF;
+        break;
+    }
+    case E_CLASS: {
+        cls* clas = malloc(sizeof(cls));
+
+        char* id = ((expression*) get_list(exp->exps, 0))->value.val.str;
+        error(program, "Classes are not implemented yet!", exp->line);
+
+        res.val.cls = clas;
+        res.type = V_CLASS;
+    }
+    case E_PUSH:
+    {
+        expression *list_exp = (expression *)get_list(exp->exps, 0);
+        expression *to_push_exp = (expression *)get_list(exp->exps, 1);
+
+        array_list* list = eval(list_exp, env, global, program).val.ref;
+        expression_value val = (eval(to_push_exp, env, global, program));
+        add_list(list, &val);
+
+        res.val.ref = list;
+        res.type = V_REF;
+        break;
+    }
+    case E_INSERT:
+    {
+        expression *list_exp = (expression *)get_list(exp->exps, 0);
+        expression *to_push_exp = (expression *)get_list(exp->exps, 1);
+        expression *index_exp = (expression *)get_list(exp->exps, 2);
+
+        int index = eval(index_exp, env, global, program).val.i;
+        array_list* list = eval(list_exp, env, global, program).val.ref;
+        expression_value val = (eval(to_push_exp, env, global, program));
+        
+        insert_list(list, &val, index);
+
+        res.val.ref = list;
+        res.type = V_REF;
+        break;
+    }
+    case E_GET:
+    {
+        expression *list_exp = (expression *)get_list(exp->exps, 0);
+        expression *index_exp = (expression *)get_list(exp->exps, 1);
+
+        array_list* list = eval(list_exp, env, global, program).val.ref;
+        int index = eval(index_exp, env, global, program).val.i;
+
+        expression_value* val = get_list(list, index);
+        
+        res = *val;
+        break;
+    }
+    case E_POP:
+    {
+        expression *list_exp = (expression *)get_list(exp->exps, 0);
+        array_list* list = eval(list_exp, env, global, program).val.ref;
+        
+        int index = -1;
+
+        if(get_size_list(exp->exps) == 2){
+            expression *index_exp = (expression *)get_list(exp->exps, 1);
+            index = eval(index_exp, env, global, program).val.i;
+        }
+
+        if(index == -1) index = get_size_list(list)-1;
+        
+        expression_value val;
+        pop_list(list, index, &val);
+        
+        res = val;
+        break;
+    }
     case E_IMPORT:
     {
         char* cwd = getcurrentdir();
@@ -177,8 +275,6 @@ expression_value eval(expression *exp, environment env, environment *global, cha
         }
         strcat(cwd, ".cr");
                 
-        printf("%s\n", cwd);
-        
         FILE *f = fopen(cwd, "r");
         if(f == NULL) error(program, "Module not found", exp->line);
     
@@ -280,7 +376,6 @@ expression_value eval(expression *exp, environment env, environment *global, cha
         if (flag)
             break;
 
-        printf("%s\n", exp->value.val.str);
         error(program, "Undefined identifier.", exp->line);
         break;
     }
@@ -391,6 +486,7 @@ expression_value eval(expression *exp, environment env, environment *global, cha
         res.type = V_NULL;
         break;
     }
+
     case E_LET:
     {
         expression *id_exp = (expression *)get_list(exp->exps, 0);
@@ -414,6 +510,17 @@ expression_value eval(expression *exp, environment env, environment *global, cha
 
         env.vals[env.i] = val;
         env.i++;
+
+        if(val.type == V_FUNCTION){
+            environment f_env = val.val.func->env;
+
+            f_env.ids[f_env.i] = cpy;
+
+            f_env.vals[f_env.i] = val;
+            f_env.i++;
+
+            val.val.func->env = f_env;
+        }
 
         expression_value in =
             eval(in_exp, env, global, program);

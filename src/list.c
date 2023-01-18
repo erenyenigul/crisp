@@ -1,6 +1,7 @@
 #include "list.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 array_list *create_list(size_t initial_capacity, size_t element_size)
 {
@@ -90,6 +91,26 @@ void pop_list(array_list *list, int index, void *item)
 
     list->size--;
 }
+
+void insert_list(array_list *list, void *item, int index){
+    if (list->size == list->capacity)
+    {
+        list->capacity *= 2;
+        list->items =
+            realloc(list->items, list->element_size * list->capacity);
+    }
+    
+    
+    memcpy(list->items + (index + 1) * list->element_size,
+           list->items + index * list->element_size,
+           (list->size - index) * list->element_size);
+
+    memcpy(list->items + index * list->element_size, item, 
+       list->element_size);
+
+    list->size++;
+};
+
 
 int get_size_list(array_list *list) { return list->size; }
 

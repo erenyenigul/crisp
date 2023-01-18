@@ -4,7 +4,11 @@
 #include "scanner.h"
 
 struct _function;
+struct _cls;
+struct _instance;
 typedef struct _function function;
+typedef struct _cls cls;
+typedef struct _instance instance;
 
 typedef enum
 {
@@ -16,6 +20,8 @@ typedef enum
     V_FUNCTION,
     V_FILE,
     V_BOOL,
+    V_REF,
+    V_CLASS
 } expression_value_type;
 
 typedef enum
@@ -48,7 +54,13 @@ typedef enum
     E_GREATER,
     E_GREATER_EQUAL,
     E_LESS,
-    E_LESS_EQUAL
+    E_LESS_EQUAL,
+    E_LIST,
+    E_PUSH,
+    E_GET,
+    E_POP,
+    E_INSERT,
+    E_CLASS
 } expression_type;
 
 typedef union
@@ -59,6 +71,9 @@ typedef union
     function *func;
     FILE *file;
     bool boolean;
+    array_list *ref;
+    cls* cls;
+    instance* instance;
 } expression_values;
 
 typedef struct
@@ -91,6 +106,16 @@ struct _function
     expression *body;
     environment env;
 };
+
+struct _cls 
+{
+    environment definitions;
+};
+
+struct _instance 
+{
+    environment env;
+} ;
 
 typedef struct
 {

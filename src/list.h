@@ -15,6 +15,7 @@ typedef struct
 array_list *create_list(size_t initial_capacity, size_t element_size);
 void destroy_list(array_list *list);
 void add_list(array_list *list, void *item);
+void insert_list(array_list *list, void *item, int index);
 void *get_list(array_list *list, int index);
 void remove_list(array_list *list, int index);
 int get_size_list(array_list *list);

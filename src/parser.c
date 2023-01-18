@@ -182,6 +182,36 @@ expression *parse(tokens *token_collection, char *program)
                 type = E_GREATER;
                 num = 2;
             }
+            else if (t->type == T_LIST)
+            {
+                type = E_LIST;
+                num = 0;
+            }
+            else if (t->type == T_PUSH)
+            {
+                type = E_PUSH;
+                num = 2;
+            }
+            else if (t->type == T_POP)
+            {
+                type = E_POP;
+                num = 3;
+            }
+            else if (t->type == T_CLASS)
+            {
+                type = E_CLASS;
+                num = 2;
+            }
+            else if (t->type == T_INSERT)
+            {
+                type = E_INSERT;
+                num = 3;
+            }
+            else if (t->type == T_GET)
+            {
+                type = E_GET;
+                num = 2;
+            }
             else if (t->type == T_BEGIN)
             {
                 type = E_BEGIN;
@@ -191,11 +221,14 @@ expression *parse(tokens *token_collection, char *program)
             {
                 type = E_CALL;
                 num = 2;
-
                 i--;
             }
 
             expression *exp = push_expression(s, type, num, t->line);
+        }
+        else if (t->type == T_OPEN_BRACKET)
+        {
+             expression *exp = push_expression(s, E_LIST, 2, t->line);
         }
         else if (t->type == T_NUMERIC || t->type == T_STRING ||
                  t->type == T_TRUE || t->type == T_FALSE)
@@ -276,6 +309,22 @@ expression *parse(tokens *token_collection, char *program)
         {
             if (s->expressions->size == 0)
                 error(program, "Unmatched paranthesis", t->line);
+
+            expression *prev_exp = pop(s);
+
+            if (s->expressions->size == 0)
+            {
+                add_list(module->exps, prev_exp);
+                continue;
+            }
+            expression *next_prev = top(s);
+
+            add_list(next_prev->exps, prev_exp);
+        }
+        else if (t->type == T_CLOSE_BRACKET)
+        {
+            if (s->expressions->size == 0)
+                error(program, "Unmatched bracket", t->line);
 
             expression *prev_exp = pop(s);
 
